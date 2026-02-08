@@ -1,0 +1,24 @@
+[package]
+name = "mre-wry-deadlock"
+version = "0.1.0"
+description = "MRE: WebView2 deadlock on Windows ARM64 (wry wait_with_pump)"
+authors = []
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["macos-private-api", "devtools", "unstable"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+tauri-plugin-process = "2"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-shell = "2"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
