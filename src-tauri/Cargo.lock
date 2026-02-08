@@ -1741,6 +1741,7 @@ dependencies = [
  "tauri-plugin-shell",
  "url",
  "uuid",
+ "webview2-com",
 ]
 
 [[package]]
