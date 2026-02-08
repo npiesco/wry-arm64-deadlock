@@ -137,6 +137,7 @@ async fn create_new_tab(
     #[cfg(windows)]
     let webview2_env = get_webview2_env(&app)?;
 
+    #[allow(unused_mut)]
     let mut builder = tauri::WebviewWindowBuilder::new(
         &app,
         &window_label,
@@ -287,7 +288,8 @@ async fn navigate_tab(
             #[cfg(windows)]
             let webview2_env = get_webview2_env(&app)?;
 
-            let mut builder = tauri::WebviewWindowBuilder::new(
+            #[allow(unused_mut)]
+    let mut builder = tauri::WebviewWindowBuilder::new(
                 &app,
                 &window_label,
                 WebviewUrl::External(parsed_url),
