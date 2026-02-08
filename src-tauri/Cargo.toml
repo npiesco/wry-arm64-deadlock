@@ -22,3 +22,14 @@ tauri-plugin-shell = "2"
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+
+[patch.crates-io]
+wry = { path = "C:/Users/npiesco/wry" }
+tauri = { path = "C:/Users/npiesco/tauri/crates/tauri" }
+tauri-build = { path = "C:/Users/npiesco/tauri/crates/tauri-build" }
+tauri-runtime-wry = { path = "C:/Users/npiesco/tauri/crates/tauri-runtime-wry" }
+tauri-runtime = { path = "C:/Users/npiesco/tauri/crates/tauri-runtime" }
+tauri-utils = { path = "C:/Users/npiesco/tauri/crates/tauri-utils" }
+tauri-macros = { path = "C:/Users/npiesco/tauri/crates/tauri-macros" }
+tauri-codegen = { path = "C:/Users/npiesco/tauri/crates/tauri-codegen" }
+tauri-plugin = { path = "C:/Users/npiesco/tauri/crates/tauri-plugin" }
