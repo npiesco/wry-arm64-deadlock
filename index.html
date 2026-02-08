@@ -42,34 +42,6 @@
         .btn:hover { background: #eee; }
         .btn-go { background: #e8e8e8; font-weight: 600; }
 
-        /* Tab bar */
-        .tab-bar {
-            display: flex; align-items: center; gap: 4px;
-            padding: 4px 12px; background: #fafafa;
-            border-bottom: 1px solid #eee;
-            flex-shrink: 0; overflow-x: auto;
-        }
-        .tab {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 4px 10px; background: #eee;
-            border: 1px solid #ddd; border-radius: 4px;
-            color: #555; font-size: 11px; cursor: pointer;
-            max-width: 200px; min-width: 80px; flex-shrink: 0;
-        }
-        .tab.active { background: #fff; border-color: #aaa; color: #111; }
-        .tab-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .tab-close {
-            width: 16px; height: 16px; display: flex;
-            align-items: center; justify-content: center;
-            border-radius: 3px; color: #999; font-size: 13px;
-        }
-        .tab-close:hover { background: #fcc; color: #c00; }
-        .btn-tab { padding: 3px 10px; font-size: 12px; }
-        .btn-close-all {
-            margin-left: auto; color: #c00;
-            border-color: #ecc; background: #fff5f5;
-        }
-
         /* Status bar */
         .status-bar {
             display: flex; align-items: center; gap: 10px;
@@ -153,10 +125,6 @@
             <button id="goBtn" class="btn btn-go">Go</button>
         </div>
     </div>
-    <div class="tab-bar" id="tabBar">
-        <button id="newTabBtn" class="btn btn-tab">+ New Tab</button>
-        <button id="closeAllBtn" class="btn btn-tab btn-close-all">Close All</button>
-    </div>
     <div class="status-bar idle" id="statusBar">
         <div class="spinner"></div>
         <div class="status-text" id="statusText">Ready</div>
@@ -164,10 +132,10 @@
     </div>
     <div class="content" id="content">
         <div class="instructions" id="instructions">
-            <span class="step-num">1</span> Click <strong>Go</strong> to open <code>example.com</code> in a new tab.<br>
+            <span class="step-num">1</span> Click <strong>Go</strong> to open <code>example.com</code> in a child WebView2 window.<br>
             <span class="step-num">2</span> Change the URL and click <strong>Go</strong> again.<br><br>
-            The second <strong>Go</strong> calls <code>navigate_tab</code> which does:<br>
-            <code>window.close()</code> then <code>WebviewWindowBuilder::new(SAME_LABEL).build()</code><br><br>
+            Step 2 calls <code>navigate_tab</code> which does:<br>
+            <code>window.close()</code> &rarr; <code>WebviewWindowBuilder::new(SAME_LABEL).build()</code><br><br>
             On <strong>ARM64 Windows</strong>, <code>.build()</code> deadlocks inside<br>
             wry <code>wait_with_pump()</code>. The status bar turns red.
         </div>

@@ -27,8 +27,30 @@ impl AppState {
     }
 }
 
-/// Height of the toolbar + tab-bar in the main window (pixels).
+/// Height of the toolbar + tab-bar in the main window (logical pixels).
 const TOOLBAR_HEIGHT: f64 = 70.0;
+
+/// Compute logical position & size for a browser-tab child window
+/// so it sits directly underneath the toolbar of the given main window.
+fn tab_geometry(win: &tauri::WebviewWindow) -> Result<(f64, f64, f64, f64), String> {
+    let sf = win
+        .scale_factor()
+        .map_err(|e| format!("scale_factor: {}", e))?;
+    let phys_pos = win
+        .outer_position()
+        .map_err(|e| format!("outer_position: {}", e))?;
+    let phys_size = win
+        .inner_size()
+        .map_err(|e| format!("inner_size: {}", e))?;
+
+    // Convert physical -> logical
+    let lx = phys_pos.x as f64 / sf;
+    let ly = phys_pos.y as f64 / sf;
+    let lw = phys_size.width as f64 / sf;
+    let lh = phys_size.height as f64 / sf;
+
+    Ok((lx, ly + TOOLBAR_HEIGHT, lw.max(800.0), (lh - TOOLBAR_HEIGHT).max(400.0)))
+}
 
 /// Switch the active tab: hide old, show new.
 fn switch_to_tab_internal(
@@ -70,27 +92,21 @@ fn switch_to_tab_internal(
 #[tauri::command]
 async fn create_new_tab(
     app: tauri::AppHandle,
-    window: Window,
+    _window: Window,
     state: tauri::State<'_, AppState>,
     url: Option<String>,
 ) -> Result<String, String> {
     let tab_id = uuid::Uuid::new_v4().to_string();
     let window_label = format!("browser_tab_{}", tab_id);
 
-    let main_pos = window
-        .outer_position()
-        .map_err(|e| format!("Failed to get window position: {}", e))?;
-
     let target_url = url.unwrap_or_else(|| "about:blank".to_string());
     let parsed_url = target_url
         .parse::<url::Url>()
         .map_err(|e| format!("Invalid URL: {}", e))?;
 
-    let main_size = window
-        .inner_size()
-        .map_err(|e| format!("Failed to get window size: {}", e))?;
-    let browser_width = main_size.width as f64;
-    let browser_height = (main_size.height as f64) - TOOLBAR_HEIGHT;
+    // Physical -> logical so the child window lands right under the toolbar
+    let main_wv = app.get_webview_window("main").ok_or("Main window not found")?;
+    let (x, y, w, h) = tab_geometry(&main_wv)?;
 
     // This .build() call is where the deadlock can occur on ARM64
     let _browser_window = tauri::WebviewWindowBuilder::new(
@@ -99,8 +115,8 @@ async fn create_new_tab(
         WebviewUrl::External(parsed_url),
     )
     .title(&target_url)
-    .inner_size(browser_width.max(800.0), browser_height.max(400.0))
-    .position(main_pos.x as f64, (main_pos.y as f64) + TOOLBAR_HEIGHT)
+    .inner_size(w, h)
+    .position(x, y)
     .decorations(false)
     .resizable(false)
     .always_on_top(true)
@@ -226,28 +242,23 @@ async fn navigate_tab(
             .map_err(|e| format!("Failed to close window: {}", e))?;
 
         if let Some(main_win) = app.get_webview_window("main") {
-            if let Ok(main_pos) = main_win.outer_position() {
-                if let Ok(main_size) = main_win.inner_size() {
-                    let browser_width = main_size.width as f64;
-                    let browser_height = (main_size.height as f64) - TOOLBAR_HEIGHT;
+            let (x, y, w, h) = tab_geometry(&main_win)?;
 
-                    let _new_browser_window = tauri::WebviewWindowBuilder::new(
-                        &app,
-                        &window_label,
-                        WebviewUrl::External(parsed_url),
-                    )
-                    .title(&url)
-                    .inner_size(browser_width.max(800.0), browser_height.max(400.0))
-                    .position(main_pos.x as f64, (main_pos.y as f64) + TOOLBAR_HEIGHT)
-                    .decorations(false)
-                    .resizable(false)
-                    .always_on_top(true)
-                    .skip_taskbar(true)
-                    .visible(true)
-                    .build()
-                    .map_err(|e| format!("Failed to create new window: {}", e))?;
-                }
-            }
+            let _new_browser_window = tauri::WebviewWindowBuilder::new(
+                &app,
+                &window_label,
+                WebviewUrl::External(parsed_url),
+            )
+            .title(&url)
+            .inner_size(w, h)
+            .position(x, y)
+            .decorations(false)
+            .resizable(false)
+            .always_on_top(true)
+            .skip_taskbar(true)
+            .visible(true)
+            .build()
+            .map_err(|e| format!("Failed to create new window: {}", e))?;
         }
     }
 
